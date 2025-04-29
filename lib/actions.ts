@@ -22,3 +22,9 @@ export function saveResume() {
   // Implement save logic (e.g., localStorage, API call, etc)
   alert('Save functionality not implemented yet.')
 }
+
+// Action for creating a new resume (currently just logs a message)
+export function newResumeAction() {
+  console.log('Creating new resume - action triggered')
+  // Additional logic for creating a new resume can be added here
+}

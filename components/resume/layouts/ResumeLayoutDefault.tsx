@@ -23,7 +23,6 @@ const ResumeLayoutDefault = ({ className = "", page, colors, resume, pdfRender =
       padding: 20,
       backgroundColor: colors.background,
       minHeight: '100%',
-      fontFamily: 'Helvetica, Times, Times New Roman, Arial, sans-serif',
     },
     section: {
       marginBottom: 16,

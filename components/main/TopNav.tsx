@@ -1,88 +1,32 @@
 'use client'
 import React from 'react'
 import Logo from './Logo'
-import { ThemeToggle } from './ThemeToggle'
-import {
-    Menubar,
-    MenubarContent,
-    MenubarItem,
-    MenubarMenu,
-    MenubarSeparator,
-    MenubarShortcut,
-    MenubarTrigger,
-  } from "@/components/ui/menubar"
-import { exportResumePdf, saveResume } from '@/lib/actions'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { FileText, Github } from 'lucide-react'
 
 const TopNav = () => {
     return (
-        <nav className='bg-muted border-b border-border'>
-                <div className="flex items-center ">
-                    <Logo />
-
-                    <Menubar className="bg-muted border-none shadow-none px-0">
-                        <MenubarMenu>
-                            <MenubarTrigger className=" ">File</MenubarTrigger>
-                            <MenubarContent>
-                                <MenubarItem>
-                                    New Resume <MenubarShortcut>⌘N</MenubarShortcut>
-                                </MenubarItem>
-                                <MenubarItem>
-                                    Open... <MenubarShortcut>⌘O</MenubarShortcut>
-                                </MenubarItem>
-                                <MenubarSeparator />
-                                <MenubarItem>
-                                    Save <MenubarShortcut>⌘S</MenubarShortcut>
-                                </MenubarItem>
-                            </MenubarContent>
-                        </MenubarMenu>
-                        <MenubarMenu>
-                            <MenubarTrigger className=" ">Export</MenubarTrigger>
-                            <MenubarContent>
-                                <MenubarItem onClick={exportResumePdf}>
-                                    Export PDF
-                                </MenubarItem>
-                            </MenubarContent>
-                        </MenubarMenu>
-                        <MenubarMenu>
-                            <MenubarTrigger className=" ">Edit</MenubarTrigger>
-                            <MenubarContent>
-                                <MenubarItem>
-                                    Undo <MenubarShortcut>⌘Z</MenubarShortcut>
-                                </MenubarItem>
-                                <MenubarItem>
-                                    Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
-                                </MenubarItem>
-                                <MenubarSeparator />
-                                <MenubarItem>
-                                    Cut <MenubarShortcut>⌘X</MenubarShortcut>
-                                </MenubarItem>
-                                <MenubarItem>
-                                    Copy <MenubarShortcut>⌘C</MenubarShortcut>
-                                </MenubarItem>
-                                <MenubarItem>
-                                    Paste <MenubarShortcut>⌘V</MenubarShortcut>
-                                </MenubarItem>
-                            </MenubarContent>
-                        </MenubarMenu>
-                        <MenubarMenu>
-                            <MenubarTrigger className=" ">Help</MenubarTrigger>
-                            <MenubarContent>
-                                <MenubarItem>
-                                    Documentation
-                                </MenubarItem>
-                                <MenubarItem>
-                                    Contact Support
-                                </MenubarItem>
-                                <MenubarSeparator />
-                                <MenubarItem>
-                                    About
-                                </MenubarItem>
-                            </MenubarContent>
-                        </MenubarMenu>
-                    </Menubar>
-
+        <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container flex h-16 items-center justify-between py-4">
+                <Logo />
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" asChild>
+                        <Link href="/about">About</Link>
+                    </Button>
+                    <Button variant="ghost" asChild>
+                        <a href="https://github.com/yourusername/resumemaker" target="_blank" rel="noopener noreferrer">
+                            <Github className="h-4 w-4 mr-2" /> GitHub
+                        </a>
+                    </Button>
+                    <Button asChild>
+                        <Link href="/create">
+                            Create Resume
+                        </Link>
+                    </Button>
                 </div>
-        </nav>
+            </div>
+        </header>
     )
 }
 

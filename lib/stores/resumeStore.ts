@@ -79,6 +79,7 @@ type ResumeHistoryState = {
   updateColor: (key: keyof ResumeColors, value: string) => void;
   updateLayout: (layout: 'one-column' | 'two-column') => void;
   updatePage: (page: Partial<{ width: number; height: number }>) => void;
+  resetResume: () => void;
 }
 
 // Helper to create a new present state from previous and patch
@@ -156,6 +157,9 @@ export const useResumeStore = create<ResumeStore>()(
             ...page,
           },
         })),
+      resetResume: () => set(() => ({
+        ...defaultResumeStore
+      })),
     }),
     {
       name: 'resume-storage',
@@ -258,6 +262,18 @@ export const useResumeHistoryStore = create<ResumeHistoryState>()(
         updateColor,
         updateLayout,
         updatePage,
+        resetResume: () => set({
+          past: [],
+          present: {
+            ...defaultResumeStore,
+            updateResume,
+            updateColors,
+            updateColor,
+            updateLayout,
+            updatePage,
+          },
+          future: [],
+        }),
       }
     },
     {
