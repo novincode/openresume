@@ -31,7 +31,7 @@ export default function HomePage() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="gap-2">
-              <a href="https://github.com/yourusername/resumemaker" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/novincode/openresume" target="_blank" rel="noopener noreferrer">
                 <Github className="h-4 w-4" /> GitHub Repo
               </a>
             </Button>

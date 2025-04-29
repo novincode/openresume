@@ -15,7 +15,7 @@ const TopNav = () => {
                         <Link href="/about">About</Link>
                     </Button>
                     <Button variant="ghost" asChild>
-                        <a href="https://github.com/yourusername/resumemaker" target="_blank" rel="noopener noreferrer">
+                        <a href="https://github.com/novincode/openresume" target="_blank" rel="noopener noreferrer">
                             <Github className="h-4 w-4 mr-2" /> GitHub
                         </a>
                     </Button>

@@ -1,67 +1,127 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`c3`](https://developers.cloudflare.com/pages/get-started/c3).
+<div align="center">
+  <h1>✨ OpenResume</h1>
+  <p><strong>Create stunning, ATS-friendly resumes in seconds—not hours</strong></p>
+  
+  [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+  [![Next.js](https://img.shields.io/badge/Next.js_15-black?logo=next.js)](https://nextjs.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+  
+  <p align="center">
+    <a href="#demo">View Demo</a> •
+    <a href="#features">Features</a> •
+    <a href="#quickstart">Quick Start</a> •
+    <a href="#tech-stack">Tech Stack</a> •
+    <a href="#contributing">Contribute</a>
+  </p>
 
-## Getting Started
+  <br/>
+  
+  <img src="https://via.placeholder.com/800x400?text=OpenResume+Screenshot" alt="OpenResume Preview" width="80%" />
+</div>
 
-First, run the development server:
+## 🚀 What is OpenResume?
+
+**OpenResume** liberates your resume-building experience. No paywalls, no sign-ups, no tracking—just a beautifully simple tool that puts you in control.
+
+**The Problem:** Most resume builders are frustrating experiences:
+- 🔒 Basic features locked behind paywalls
+- 📊 Your data tracked and sold
+- 🔑 Account creation required for simple PDF exports
+
+**Our Solution:** A privacy-first, open-source alternative built with modern web technologies that just works.
+
+## ✨ Features <a name="features"></a>
+
+- 💨 **Blazing Fast** — Built with Next.js 15 and Turbopack for instant feedback
+- 🎨 **Professional Templates** — Multiple ATS-optimized designs
+- ⚡️ **Instant Preview** — See changes in real-time with live rendering
+- 📱 **Fully Responsive** — Perfect experience on desktop, tablet, or mobile
+- 🔐 **100% Private** — All data stays in your browser, nothing sent to servers
+- 🌙 **Dark Mode** — Easy on the eyes, day or night
+- 🧩 **Drag & Drop Sections** — Customize your resume layout intuitively
+- 📤 **Export Options** — Download as PDF, share links, or print directly
+
+## 🏁 Quick Start <a name="quickstart"></a>
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Clone the repo
+git clone https://github.com/yourusername/openresume.git
+
+# Install dependencies
+pnpm install
+
+# Start development server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000) to start building your resume!
 
-## Cloudflare integration
+## 🧰 Tech Stack <a name="tech-stack"></a>
 
-Besides the `dev` script mentioned above `c3` has added a few extra scripts that allow you to integrate the application with the [Cloudflare Pages](https://pages.cloudflare.com/) environment, these are:
-  - `pages:build` to build the application for Pages using the [`@cloudflare/next-on-pages`](https://github.com/cloudflare/next-on-pages) CLI
-  - `preview` to locally preview your Pages application using the [Wrangler](https://developers.cloudflare.com/workers/wrangler/) CLI
-  - `deploy` to deploy your Pages application using the [Wrangler](https://developers.cloudflare.com/workers/wrangler/) CLI
+OpenResume leverages modern technologies for the best developer and user experience:
 
-> __Note:__ while the `dev` script is optimal for local development you should preview your Pages application as well (periodically or before deployments) in order to make sure that it can properly work in the Pages environment (for more details see the [`@cloudflare/next-on-pages` recommended workflow](https://github.com/cloudflare/next-on-pages/blob/main/internal-packages/next-dev/README.md#recommended-development-workflow))
+- **Frontend**: Next.js 15, React 19, Tailwind CSS 4
+- **Components**: Radix UI for accessible, unstyled components
+- **Forms**: React Hook Form with Zod validation
+- **PDF Generation**: @react-pdf/renderer for pixel-perfect exports
+- **State Management**: Zustand for simple, fast state
+- **Deployment**: Optimized for Cloudflare Pages, Vercel, or self-hosting
 
-### Bindings
+## 🛠️ Development
 
-Cloudflare [Bindings](https://developers.cloudflare.com/pages/functions/bindings/) are what allows you to interact with resources available in the Cloudflare Platform.
+```bash
+# Start development server with hot reloading
+pnpm dev
 
-You can use bindings during development, when previewing locally your application and of course in the deployed application:
+# Build for production
+pnpm build
 
-- To use bindings in dev mode you need to define them in the `next.config.js` file under `setupDevBindings`, this mode uses the `next-dev` `@cloudflare/next-on-pages` submodule. For more details see its [documentation](https://github.com/cloudflare/next-on-pages/blob/05b6256/internal-packages/next-dev/README.md).
+# Preview production build
+pnpm preview
 
-- To use bindings in the preview mode you need to add them to the `pages:preview` script accordingly to the `wrangler pages dev` command. For more details see its [documentation](https://developers.cloudflare.com/workers/wrangler/commands/#dev-1) or the [Pages Bindings documentation](https://developers.cloudflare.com/pages/functions/bindings/).
+# Deploy to Cloudflare Pages
+pnpm deploy
+```
 
-- To use bindings in the deployed application you will need to configure them in the Cloudflare [dashboard](https://dash.cloudflare.com/). For more details see the  [Pages Bindings documentation](https://developers.cloudflare.com/pages/functions/bindings/).
+## 🤝 Contributing <a name="contributing"></a>
 
-#### KV Example
+Contributions make OpenResume better for everyone! Whether you're fixing bugs, improving templates, or enhancing features—we welcome your input.
 
-`c3` has added for you an example showing how you can use a KV binding.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-improvement`)
+3. Commit your changes (`git commit -m 'Add some amazing improvement'`)
+4. Push to the branch (`git push origin feature/amazing-improvement`)
+5. Open a Pull Request
 
-In order to enable the example:
-- Search for javascript/typescript lines containing the following comment:
-  ```ts
-  // KV Example:
-  ```
-  and uncomment the commented lines below it (also uncomment the relevant imports).
-- In the `wrangler.jsonc` file add the following configuration line:
-  ```
-  "kv_namespaces": [{ "binding": "MY_KV_NAMESPACE", "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" }],
-  ```
-- If you're using TypeScript run the `cf-typegen` script to update the `env.d.ts` file:
-  ```bash
-  npm run cf-typegen
-  # or
-  yarn cf-typegen
-  # or
-  pnpm cf-typegen
-  # or
-  bun cf-typegen
-  ```
+See our [Contribution Guidelines](CONTRIBUTING.md) for more details.
 
-After doing this you can run the `dev` or `preview` script and visit the `/api/hello` route to see the example in action.
+## 🔍 Project Structure
 
-Finally, if you also want to see the example work in the deployed application make sure to add a `MY_KV_NAMESPACE` binding to your Pages application in its [dashboard kv bindings settings section](https://dash.cloudflare.com/?to=/:account/pages/view/:pages-project/settings/functions#kv_namespace_bindings_section). After having configured it make sure to re-deploy your application.
+```
+openresume/
+├── components/         # Reusable UI components
+│   ├── resume/         # Resume-specific components
+│   └── ui/             # Base UI components with Radix
+├── lib/                # Utility functions and hooks
+├── pages/              # Next.js pages and API routes
+├── public/             # Static assets
+└── styles/             # Global styles and Tailwind config
+```
+
+## 🌐 Live Demo <a name="demo"></a>
+
+Try OpenResume right now at [https://openresume.codeideal.com](https://openresume.codeideal.com)
+
+## 📄 License
+
+OpenResume is [MIT licensed](LICENSE) — free to use, modify, and distribute.
+
+---
+
+<div align="center">
+  <p>Built with ❤️ by developers, for developers</p>
+  <p>
+    <a href="https://github.com/novincode/openresume/stargazers">Star us on GitHub</a> •
+  
+  </p>
+</div>
