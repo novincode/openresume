@@ -14,6 +14,7 @@ import { useResumeHistoryStore } from '@/lib/stores/resumeStore'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { Separator } from '../ui/separator'
 
 const AppMenu = () => {
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -25,7 +26,7 @@ const AppMenu = () => {
     return (
         <nav className='bg-muted border-b border-border'>
             <div className="flex items-center ">
-                <Logo />
+                <Logo className='border-r-2 border-border rounded-none mx-2' />
                 <Menubar className="bg-muted border-none shadow-none px-0">
                     <MenubarMenu>
                         <MenubarTrigger className=" ">File</MenubarTrigger>
@@ -119,8 +120,16 @@ const AppMenu = () => {
                             <MenubarItem asChild>
                                 <Link href="/about">About</Link>
                             </MenubarItem>
+                            <MenubarItem asChild>
+                                <a
+                                    href="https://github.com/novincode/openresume"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    GitHub
+                                </a>
+                            </MenubarItem>
                             <MenubarSeparator />
-
                             <MenubarItem asChild>
                                 <a href="https://codeideal.com" target="_blank" rel="noopener noreferrer">Made by CodeIdeal</a>
                             </MenubarItem>

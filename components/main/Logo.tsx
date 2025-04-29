@@ -3,17 +3,20 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { FileText } from 'lucide-react'
 
-const Logo = () => {
-    return (
-        <h2>
-            <Button variant={'ghost'} asChild>
-                <Link className='font-black' href={'/'}>
-                    <FileText className="h-5 w-5 text-primary" />
+type LogoProps = {
+    className?: string
+}
 
+const Logo = ({ className }: LogoProps) => {
+    return (
+        <Button variant={'ghost'} asChild className={className}>
+            <Link className='font-black' href={'/'}>
+                <FileText className="h-5 w-5 text-primary" />
+                <strong>
                     ResumeMaker
-                </Link>
-            </Button>
-        </h2>
+                </strong>
+            </Link>
+        </Button>
     )
 }
 
