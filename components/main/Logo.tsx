@@ -13,7 +13,7 @@ const Logo = ({ className }: LogoProps) => {
             <Link className='font-black' href={'/'}>
                 <FileText className="h-5 w-5 text-primary" />
                 <strong>
-                    ResumeMaker
+                    OpenResume
                 </strong>
             </Link>
         </Button>

@@ -51,7 +51,6 @@ function ColorControl({ colorKey, colorValue, onChange }: { colorKey: string, co
 
 const StylingPanel = () => {
     const colors = { ...defaultColors, ...useResumeHistoryStore(s => s.present.colors) }
-    const updateColor = useResumeHistoryStore(s => s.updateColor)
     const updateColors = useResumeHistoryStore(s => s.updateColors)
 
     return (
@@ -63,7 +62,7 @@ const StylingPanel = () => {
                         key={key}
                         colorKey={key}
                         colorValue={value}
-                        onChange={val => updateColor(key as any, val)}
+                        onChange={val => updateColors({ [key]: val })}
                     />
                 ))}
             </div>

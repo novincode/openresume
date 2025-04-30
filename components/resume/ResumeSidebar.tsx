@@ -1,12 +1,12 @@
 'use client'
-
 import { ScrollArea } from '@/components/ui/scroll-area'
 import SizePanel from './panel/SizePanel'
 import StylingPanel from './panel/StylingPanel'
+import ResumeInfoPanel from './panel/ResumeInfoPanel'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
-// Sidebar section wrapper
-const ResumeSidebarSection = ({
+// Simple section wrapper
+const Section = ({
     title,
     children
 }: {
@@ -22,32 +22,32 @@ const ResumeSidebarSection = ({
 type ResumeSidebarProps = {
     page: { width: number; height: number }
     updatePage: (page: Partial<{ width: number; height: number }>) => void
-    // ...add other props as needed...
 }
 
-const ResumeSidebar = ({ page, updatePage }: ResumeSidebarProps) => {
+export default function ResumeSidebar({ page, updatePage }: ResumeSidebarProps) {
     return (
-        <ScrollArea className="h-full w-full  ">
+        <ScrollArea className="h-full w-full">
             <Tabs defaultValue="general" className="w-full">
-                <div className='p-2'>
+                <div className="p-2">
                     <TabsList className="w-full grid grid-cols-2 mb-2 p-1">
                         <TabsTrigger value="general">General</TabsTrigger>
                         <TabsTrigger value="styling">Styling</TabsTrigger>
                     </TabsList>
                 </div>
                 <TabsContent value="general">
-                    <ResumeSidebarSection title="Page Size">
+                    <Section title="Page Size">
                         <SizePanel page={page} updatePage={updatePage} />
-                    </ResumeSidebarSection>
+                    </Section>
+                    <Section title="Your Information">
+                        <ResumeInfoPanel />
+                    </Section>
                 </TabsContent>
                 <TabsContent value="styling">
-                    <ResumeSidebarSection title="Styling">
+                    <Section title="Colors">
                         <StylingPanel />
-                    </ResumeSidebarSection>
+                    </Section>
                 </TabsContent>
             </Tabs>
         </ScrollArea>
     )
 }
-
-export default ResumeSidebar

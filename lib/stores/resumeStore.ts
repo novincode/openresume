@@ -1,283 +1,207 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-// Generic section item, can be extended for different types
-type SectionItem = {
+export type SectionItem = {
   id: string
-  type: string // e.g. 'work', 'education', 'paragraph', etc.
+  type: string
   title?: string
   subtitle?: string
   organization?: string
   date?: string
   description?: string
-  bullets?: string[]
-  [key: string]: any // for extensibility
+  bullets: string[]
+  [key: string]: any
 }
 
-// Generic section
-type Section = {
+export type Section = {
   id: string
   title: string
   items: SectionItem[]
 }
 
-// Resume data
 export type ResumeData = {
-  name?: string
-  description?: string
-  contact?: {
-    email?: string
-    phone?: string
-    location?: string
+  name: string
+  description: string
+  contact: {
+    email: string
+    phone: string
+    location: string
     [key: string]: any
   }
-  sections?: Section[]
+  sections: Section[]
 }
 
-// Store type
 export type ResumeColors = {
-  background: string;
-  title: string;
-  subtitle: string;
-  text: string;
-  border: string;
-  accent: string;
-  [key: string]: string;
-};
+  background: string
+  title: string
+  subtitle: string
+  text: string
+  border: string
+  accent: string
+  [key: string]: string
+}
 
-export type ResumeStore = {
-  meta: {
-    version: string
-    createdAt: string
-  }
-  colors: ResumeColors;
-  layout: 'one-column' | 'two-column'
-  page: {
-    width: number // mm
-    height: number // mm
-  }
+export type ResumeState = {
   resume: ResumeData
+  colors: ResumeColors
+  layout: 'one-column' | 'two-column'
+  page: { width: number; height: number }
+}
 
-  // Actions
+export type ResumeHistoryStore = {
+  past: ResumeState[]
+  present: ResumeState
+  future: ResumeState[]
+  canUndo: boolean
+  canRedo: boolean
+  undo: () => void
+  redo: () => void
   updateResume: (data: Partial<ResumeData>) => void
   updateColors: (colors: Partial<ResumeColors>) => void
-  updateColor: (key: keyof ResumeColors, value: string) => void
   updateLayout: (layout: 'one-column' | 'two-column') => void
   updatePage: (page: Partial<{ width: number; height: number }>) => void
+  reset: () => void
 }
 
-type ResumeHistoryState = {
-  past: ResumeStore[];
-  present: ResumeStore;
-  future: ResumeStore[];
-  undo: () => void;
-  redo: () => void;
-  clearHistory: () => void;
-  // Wraps all update actions to record history
-  updateResume: (data: Partial<ResumeData>) => void;
-  updateColors: (colors: Partial<ResumeColors>) => void;
-  updateColor: (key: keyof ResumeColors, value: string) => void;
-  updateLayout: (layout: 'one-column' | 'two-column') => void;
-  updatePage: (page: Partial<{ width: number; height: number }>) => void;
-  resetResume: () => void;
+export const defaultColors: ResumeColors = {
+  background: '#ffffff',
+  title: '#22223b',
+  subtitle: '#4a4e69',
+  text: '#22223b',
+  border: '#e0e0e0',
+  accent: '#3a86ff',
 }
 
-// Helper to create a new present state from previous and patch
-function patchPresent(present: ResumeStore, patch: Partial<ResumeStore>): ResumeStore {
+const defaultResume: ResumeData = {
+  name: '',
+  description: '',
+  contact: { email: '', phone: '', location: '' },
+  sections: [],
+}
+
+const defaultState: ResumeState = {
+  resume: defaultResume,
+  colors: defaultColors,
+  layout: 'two-column',
+  page: { width: 210, height: 297 },
+}
+
+function makePresent(state: ResumeHistoryStore) {
   return {
-    ...present,
-    ...patch,
-    page: patch.page ? { ...present.page, ...patch.page } : present.page,
-    resume: patch.resume ? { ...present.resume, ...patch.resume } : present.resume,
+    resume: state.present.resume,
+    colors: state.present.colors,
+    layout: state.present.layout,
+    page: state.present.page,
   }
 }
 
-// Default color palette (can use Tailwind/shadcn variables or hex)
-export const defaultColors: ResumeColors = {
-  background: '#ffffff', // white
-  title: '#22223b',      // deep blue-gray
-  subtitle: '#4a4e69',   // muted blue-gray
-  text: '#22223b',       // same as title for strong contrast
-  border: '#e0e0e0',     // light gray
-  accent: '#3a86ff',     // modern blue accent
-};
-
-// Default data for resume store (no sample resume data)
-const defaultResumeStore: Omit<ResumeStore, 'updateResume' | 'updateColors' | 'updateColor' | 'updateLayout' | 'updatePage'> = {
-  meta: {
-    version: '1.1',
-    createdAt: new Date().toISOString(),
-  },
-  colors: defaultColors,
-  layout: 'two-column',
-  page: {
-    width: 210,
-    height: 297,
-  },
-  resume: {
-    // no sample data
-  },
-}
-
-export const useResumeStore = create<ResumeStore>()(
+export const useResumeHistoryStore = create<ResumeHistoryStore>()(
   persist(
-    (set) => ({
-      ...defaultResumeStore,
-      updateResume: (data) =>
-        set((state) => ({
-          resume: {
-            ...state.resume,
-            ...data,
-          },
-        })),
-      updateColors: (colors) =>
-        set((state) => ({
-          colors: Object.keys(colors).reduce((acc, key) => {
-            const value = colors[key as keyof ResumeColors];
-            if (typeof value === 'string') {
-              acc[key] = value;
-            } else if (state.colors[key]) {
-              acc[key] = state.colors[key];
+    (set, get) => ({
+      past: [],
+      present: defaultState,
+      future: [],
+      canUndo: false,
+      canRedo: false,
+      undo: () => {
+        const { past, present, future } = get()
+        if (past.length === 0) return
+        const previous = past[past.length - 1]
+        set({
+          past: past.slice(0, -1),
+          present: previous,
+          future: [present, ...future],
+          canUndo: past.length - 1 > 0,
+          canRedo: true,
+        })
+      },
+      redo: () => {
+        const { past, present, future } = get()
+        if (future.length === 0) return
+        const next = future[0]
+        set({
+          past: [...past, present],
+          present: next,
+          future: future.slice(1),
+          canUndo: true,
+          canRedo: future.length - 1 > 0,
+        })
+      },
+      updateResume: (data) => {
+        set(state => {
+          const newPresent = {
+            ...state.present,
+            resume: {
+              ...state.present.resume,
+              ...data,
+              contact: {
+                ...state.present.resume.contact,
+                ...(data.contact || {})
+              }
             }
-            return acc;
-          }, { ...state.colors } as ResumeColors),
-        })),
-      updateColor: (key, value) =>
-        set((state) => ({
-          colors: {
-            ...state.colors,
-            [key]: value ?? state.colors[key],
-          },
-        })),
-      updateLayout: (layout) => set({ layout }),
-      updatePage: (page) =>
-        set((state) => ({
-          page: {
-            ...state.page,
-            ...page,
-          },
-        })),
-      resetResume: () => set(() => ({
-        ...defaultResumeStore
-      })),
-    }),
-    {
-      name: 'resume-storage',
-    }
-  )
-)
-
-export const useResumeHistoryStore = create<ResumeHistoryState>()(
-  persist(
-    (set, get) => {
-      // Define the update* actions here so we can spread them into present
-      const updateResume = (data: Partial<ResumeData>) => {
-        const { past, present } = get()
-        const next = patchPresent(present, { resume: { ...present.resume, ...data } })
-        set({
-          past: [...past, present].slice(-50),
-          present: { ...next, updateResume, updateColors, updateColor, updateLayout, updatePage },
-          future: [],
-        })
-      }
-      const updateColors = (colors: Partial<ResumeColors>) => {
-        const { past, present } = get()
-        const next = patchPresent(present, { colors: Object.keys(colors).reduce((acc, key) => {
-          const value = colors[key as keyof ResumeColors];
-          if (typeof value === 'string') {
-            acc[key] = value;
-          } else if (present.colors[key]) {
-            acc[key] = present.colors[key];
           }
-          return acc;
-        }, { ...present.colors } as ResumeColors) })
-        set({
-          past: [...past, present].slice(-50),
-          present: { ...next, updateResume, updateColors, updateColor, updateLayout, updatePage },
-          future: [],
+          return {
+            past: [...state.past, makePresent(state)],
+            present: newPresent,
+            future: [],
+            canUndo: true,
+            canRedo: false,
+          }
         })
-      }
-      const updateColor = (key: keyof ResumeColors, value: string) => {
-        const { past, present } = get()
-        const next = patchPresent(present, { colors: { ...present.colors, [key]: value ?? present.colors[key] } })
-        set({
-          past: [...past, present].slice(-50),
-          present: { ...next, updateResume, updateColors, updateColor, updateLayout, updatePage },
-          future: [],
+      },
+      updateColors: (colors) => {
+        set(state => {
+          const newColors = { ...state.present.colors }
+          for (const key in colors) {
+            if (typeof colors[key] === 'string') {
+              newColors[key] = colors[key] as string
+            }
+          }
+          const newPresent = {
+            ...state.present,
+            colors: newColors
+          }
+          return {
+            past: [...state.past, makePresent(state)],
+            present: newPresent,
+            future: [],
+            canUndo: true,
+            canRedo: false,
+          }
         })
-      }
-      const updateLayout = (layout: 'one-column' | 'two-column') => {
-        const { past, present } = get()
-        const next = patchPresent(present, { layout })
-        set({
-          past: [...past, present].slice(-50),
-          present: { ...next, updateResume, updateColors, updateColor, updateLayout, updatePage },
-          future: [],
+      },
+      updateLayout: (layout) => {
+        set(state => {
+          const newPresent = {
+            ...state.present,
+            layout
+          }
+          return {
+            past: [...state.past, makePresent(state)],
+            present: newPresent,
+            future: [],
+            canUndo: true,
+            canRedo: false,
+          }
         })
-      }
-      const updatePage = (page: Partial<{ width: number; height: number }>) => {
-        const { past, present } = get()
-        const next = patchPresent(present, { page: { ...present.page, ...page } })
-        set({
-          past: [...past, present].slice(-50),
-          present: { ...next, updateResume, updateColors, updateColor, updateLayout, updatePage },
-          future: [],
+      },
+      updatePage: (page) => {
+        set(state => {
+          const newPresent = {
+            ...state.present,
+            page: { ...state.present.page, ...page }
+          }
+          return {
+            past: [...state.past, makePresent(state)],
+            present: newPresent,
+            future: [],
+            canUndo: true,
+            canRedo: false,
+          }
         })
-      }
-
-      return {
-        past: [],
-        present: {
-          ...defaultResumeStore,
-          updateResume,
-          updateColors,
-          updateColor,
-          updateLayout,
-          updatePage,
-        },
-        future: [],
-        undo: () => {
-          const { past, present, future } = get()
-          if (past.length === 0) return
-          const previous = past[past.length - 1]
-          set({
-            past: past.slice(0, -1),
-            present: { ...previous, updateResume, updateColors, updateColor, updateLayout, updatePage },
-            future: [present, ...future].slice(0, 50),
-          })
-        },
-        redo: () => {
-          const { past, present, future } = get()
-          if (future.length === 0) return
-          const next = future[0]
-          set({
-            past: [...past, present].slice(-50),
-            present: { ...next, updateResume, updateColors, updateColor, updateLayout, updatePage },
-            future: future.slice(1),
-          })
-        },
-        clearHistory: () => set({ past: [], future: [] }),
-        updateResume,
-        updateColors,
-        updateColor,
-        updateLayout,
-        updatePage,
-        resetResume: () => set({
-          past: [],
-          present: {
-            ...defaultResumeStore,
-            updateResume,
-            updateColors,
-            updateColor,
-            updateLayout,
-            updatePage,
-          },
-          future: [],
-        }),
-      }
-    },
-    {
-      name: 'resume-history-storage',
-    }
+      },
+      reset: () => set({ past: [], present: defaultState, future: [], canUndo: false, canRedo: false }),
+    }),
+    { name: 'resume-history-storage' }
   )
 )

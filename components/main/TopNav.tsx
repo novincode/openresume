@@ -11,26 +11,24 @@ const TopNav = () => {
         <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center justify-between py-4">
                 <Logo />
-                <div className='flex items-center gap-3'>
-                    <Button variant="ghost" asChild>
-                        <Link href="/about">About</Link>
+              
+                <div className="flex items-center gap-4">
+                    <Button className='hidden sm:inline' variant="ghost" asChild>
+                        <Link href="/about" className="">About</Link>
                     </Button>
-                    <Button variant="ghost" asChild>
+                    <Button variant="ghost" asChild className="gap-x-2">
                         <a href="https://github.com/novincode/openresume" target="_blank" rel="noopener noreferrer">
-                            <Github className="h-4 w-4 mr-2" /> GitHub
+                            <Github className="h-4 w-4" />
+                            <span className="hidden sm:inline">GitHub</span>
                         </a>
                     </Button>
-                </div>
-                <div className="flex items-center gap-4">
-
                     <ThemeToggle />
-
-                    <Button asChild>
+                    <Button asChild className="gap-x-2">
                         <Link href="/create">
-                            Create Resume
+                            <FileText className="h-4 w-4" />
+                            <span className="hidden sm:inline">Create Resume</span>
                         </Link>
                     </Button>
-
                 </div>
             </div>
         </header>

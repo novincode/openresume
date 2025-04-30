@@ -7,6 +7,11 @@ import { useState, useEffect, useRef } from 'react'
 const PAGE_PRESETS = [
     { label: 'A4', value: 'a4', width: 210, height: 297 },
     { label: 'Letter', value: 'letter', width: 216, height: 279 },
+    { label: 'Legal', value: 'legal', width: 216, height: 356 },
+    { label: 'Tabloid', value: 'tabloid', width: 279, height: 432 },
+    { label: 'Executive', value: 'executive', width: 184, height: 267 },
+    { label: 'A5', value: 'a5', width: 148, height: 210 },
+    { label: 'B5', value: 'b5', width: 176, height: 250 },
     { label: 'Custom', value: 'custom' }
 ]
 
@@ -28,6 +33,9 @@ type SizePanelProps = {
     page: { width: number; height: number }
     updatePage: (page: Partial<{ width: number; height: number }>) => void
 }
+
+const MIN_SIZE = 50
+const MAX_SIZE = 500
 
 const SizePanel = ({ page, updatePage }: SizePanelProps) => {
     const [locked, setLocked] = useState(true)
@@ -52,11 +60,13 @@ const SizePanel = ({ page, updatePage }: SizePanelProps) => {
         }
     }
 
+    const clamp = (val: number) => Math.max(MIN_SIZE, Math.min(MAX_SIZE, val))
+
     const handleWidthChange = (val: string) => {
         setWidth(val)
         lastChanged.current = 'width'
-        const num = Number(val)
-        if (!val || isNaN(num) || num <= 0) return
+        const num = clamp(Number(val))
+        if (!val || isNaN(num)) return
         if (locked) {
             const aspect = page.width / page.height || 210 / 297
             const newHeight = Math.round((num / aspect) * 100) / 100
@@ -70,8 +80,8 @@ const SizePanel = ({ page, updatePage }: SizePanelProps) => {
     const handleHeightChange = (val: string) => {
         setHeight(val)
         lastChanged.current = 'height'
-        const num = Number(val)
-        if (!val || isNaN(num) || num <= 0) return
+        const num = clamp(Number(val))
+        if (!val || isNaN(num)) return
         if (locked) {
             const aspect = page.width / page.height || 210 / 297
             const newWidth = Math.round((num * aspect) * 100) / 100
@@ -122,7 +132,8 @@ const SizePanel = ({ page, updatePage }: SizePanelProps) => {
             <div className="flex items-center gap-2 mt-2">
                 <Input
                     type="number"
-                    min={1}
+                    min={MIN_SIZE}
+                    max={MAX_SIZE}
                     value={width}
                     onChange={e => handleWidthChange(e.target.value)}
                     className="w-20"
@@ -132,7 +143,8 @@ const SizePanel = ({ page, updatePage }: SizePanelProps) => {
                 <span className="text-muted-foreground">×</span>
                 <Input
                     type="number"
-                    min={1}
+                    min={MIN_SIZE}
+                    max={MAX_SIZE}
                     value={height}
                     onChange={e => handleHeightChange(e.target.value)}
                     className="w-20"
@@ -150,7 +162,7 @@ const SizePanel = ({ page, updatePage }: SizePanelProps) => {
                 </Button>
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-                Dimensions in mm
+                Dimensions in mm (min {MIN_SIZE}, max {MAX_SIZE})
             </div>
         </div>
     )
