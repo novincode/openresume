@@ -4,7 +4,6 @@ import React, { ReactNode } from 'react'
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
@@ -13,7 +12,6 @@ import {
 import {
   arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable'
@@ -84,10 +82,8 @@ export function SortableList({
       activationConstraint: {
         distance: 8, // Minimum drag distance before activation
       }
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
     })
+    // KeyboardSensor removed to disable keyboard drag (space/enter)
   )
 
   function handleDragEnd(event: DragEndEvent) {
