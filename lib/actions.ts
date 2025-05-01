@@ -43,6 +43,19 @@ export function importResumeFromJson(json: any): boolean {
   return true
 }
 
+// Import resume from a JSON file object (browser File API)
+export async function importJsonFromFile(file: File): Promise<true | string> {
+  try {
+    const text = await file.text();
+    const json = JSON.parse(text);
+    const ok = importResumeFromJson(json);
+    if (!ok) return 'Invalid JSON file.';
+    return true;
+  } catch (err: any) {
+    return 'Invalid JSON file.';
+  }
+}
+
 // Export resume as JSON (all present data)
 export function exportResumeJson() {
   const present = useResumeHistoryStore.getState().present
