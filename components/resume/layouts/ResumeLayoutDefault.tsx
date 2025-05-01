@@ -2,7 +2,7 @@
 import React from 'react'
 import { mmToPx } from '@/lib/utils'
 import { Document, Page, StyleSheet } from '@react-pdf/renderer'
-import { ResumeColors, ResumeData } from '@/lib/stores/resumeStore'
+import { ResumeColors, ResumeData, ResumeFonts, defaultFonts } from '@/lib/stores/resumeStore'
 import {
   PDFSafeRender,
   Div,
@@ -23,11 +23,12 @@ export interface ResumeLayoutProps {
   colors: ResumeColors
   page: { width: number; height: number }
   resume: ResumeData
+  fonts: ResumeFonts
 }
 
-const getStyles = (colors: ResumeColors) => StyleSheet.create({
+const getStyles = (colors: ResumeColors, fonts: ResumeFonts) => StyleSheet.create({
   page: {
-    padding: 20,
+    padding: 12,
     backgroundColor: colors.background,
     minHeight: '100%',
   },
@@ -40,19 +41,19 @@ const getStyles = (colors: ResumeColors) => StyleSheet.create({
     borderBottomColor: colors.border,
     paddingBottom: 12,
   },
-  name: {
-    fontSize: 28,
+  name: { // Use headingSize
+    fontSize: fonts.headingSize,
     fontWeight: 'bold',
     color: colors.title,
     marginBottom: 2,
   },
-  subtitle: {
-    fontSize: 16,
+  subtitle: { // Use subheadingSize
+    fontSize: fonts.subheadingSize,
     color: colors.subtitle,
     marginBottom: 4,
   },
-  contact: {
-    fontSize: 12,
+  contact: { // Use contactSize (New)
+    fontSize: fonts.contactSize,
     color: colors.text,
     marginBottom: 0,
   },
@@ -70,8 +71,8 @@ const getStyles = (colors: ResumeColors) => StyleSheet.create({
   rightColumn: {
     width: '35%',
   },
-  sectionTitle: {
-    fontSize: 18,
+  sectionTitle: { // Use subheadingSize
+    fontSize: fonts.subheadingSize,
     color: colors.title,
     fontWeight: 'bold',
     borderBottomWidth: 1,
@@ -79,28 +80,28 @@ const getStyles = (colors: ResumeColors) => StyleSheet.create({
     marginBottom: 8,
     paddingBottom: 2,
   },
-  jobTitle: {
-    fontSize: 14,
-    color: colors.subtitle,
+  itemLabel1: { // Use accentSize (e.g., for Job Title, Degree)
+    fontSize: fonts.accentSize,
+    color: colors.subtitle, // Keep color for now, maybe make configurable later
     fontWeight: 'bold',
   },
-  org: {
-    color: colors.accent,
-    fontSize: 13,
+  itemLabel2: { // Use bodySize (e.g., for Organization, School)
+    color: colors.accent, // Keep accent color for now
+    fontSize: fonts.bodySize,
   },
-  date: {
+  itemLabel3: { // Use labelSize (New, e.g., for Date)
     color: colors.subtitle,
-    fontSize: 12,
+    fontSize: fonts.labelSize,
     marginBottom: 2,
   },
-  text: {
+  notesText: { // Use bodySize
     color: colors.text,
-    fontSize: 12,
+    fontSize: fonts.bodySize,
     marginBottom: 2,
   },
-  bullet: {
+  bullet: { // Use bodySize
     color: colors.text,
-    fontSize: 12,
+    fontSize: fonts.bodySize,
     marginBottom: 2,
     paddingLeft: 10,
   },
@@ -113,15 +114,38 @@ const getStyles = (colors: ResumeColors) => StyleSheet.create({
     borderTopColor: colors.border,
     marginVertical: 8,
   },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 0,
+  },
+  contactItem: { // Use contactSize (New)
+    fontSize: fonts.contactSize,
+    color: colors.text,
+    marginRight: 8,
+  },
+  contactSeparator: {
+    color: colors.accent,
+    marginRight: 8,
+    marginLeft: 8,
+    fontWeight: 'bold',
+  },
 })
 
-const ResumeLayoutDefault = ({
-  page,
-  colors,
+export default function ResumeLayoutDefault({
   resume,
-  pdfRender = false,
-}: ResumeLayoutProps) => {
-  const styles = getStyles(colors)
+  colors,
+  page,
+  fonts = defaultFonts, // use defaultFonts from resumeStore
+  pdfRender,
+}: {
+  resume: ResumeData;
+  colors: ResumeColors;
+  page: { width: number; height: number };
+  fonts?: ResumeFonts;
+  pdfRender?: boolean;
+}) {
+  const styles = getStyles(colors, fonts)
   const sections = Array.isArray(resume.sections)
     ? resume.sections.filter(Boolean)
     : [];
@@ -129,36 +153,60 @@ const ResumeLayoutDefault = ({
   const leftSections = sections.slice(0, midPoint);
   const rightSections = sections.slice(midPoint);
 
+  const contactItems = [
+    resume.contact?.email && (
+      <Span key="email" style={styles.contactItem}>
+        <Strong style={styles.accent}>Email:</Strong> {resume.contact.email}
+      </Span>
+    ),
+    resume.contact?.phone && (
+      <Span key="phone" style={styles.contactItem}>
+        <Strong style={styles.accent}>Phone:</Strong> {resume.contact.phone}
+      </Span>
+    ),
+    resume.contact?.location && (
+      <Span key="location" style={styles.contactItem}>
+        <Strong style={styles.accent}>Location:</Strong> {resume.contact.location}
+      </Span>
+    ),
+  ].filter(Boolean);
+
+  const contactRow = (
+    <Div style={styles.contactRow}>
+      {contactItems.map((item, idx) => (
+        <React.Fragment key={idx}>
+          {item}
+          {idx < contactItems.length - 1 && (
+            <Span style={styles.contactSeparator}>|</Span>
+          )}
+        </React.Fragment>
+      ))}
+    </Div>
+  );
+
   const content = (
     <PDFSafeRender pdfRender={pdfRender}>
-      <Div style={pdfRender ? styles.page : { padding: 24 }}>
-        <Section style={pdfRender ? styles.header : { marginBottom: 32 }}>
+      <Div style={styles.page}>
+        <Section style={styles.header}>
           <H1 style={styles.name}>{resume.name || 'Your Name'}</H1>
           <H2 style={styles.subtitle}>{resume.description || ''}</H2>
-          {(resume.contact?.email || resume.contact?.phone || resume.contact?.location) && (
-            <P style={styles.contact}>
-              {resume.contact?.email && <Span><Strong style={styles.accent}>Email:</Strong> {resume.contact.email}</Span>}
-              {resume.contact?.email && (resume.contact?.phone || resume.contact?.location) && <Span style={{ margin: '0 8px' }}>|</Span>}
-              {resume.contact?.phone && <Span><Strong style={styles.accent}>Phone:</Strong> {resume.contact.phone}</Span>}
-              {resume.contact?.phone && resume.contact?.location && <Span style={{ margin: '0 8px' }}>|</Span>}
-              {resume.contact?.location && <Span><Strong style={styles.accent}>Location:</Strong> {resume.contact.location}</Span>}
-            </P>
-          )}
+          {contactItems.length > 0 && contactRow}
         </Section>
-        <Div style={pdfRender ? styles.content : { display: 'flex', flexDirection: 'row' }}>
-          <Div style={pdfRender ? styles.leftColumn : { width: '65%' }}>
+        <Div style={styles.content}>
+          <Div style={styles.leftColumn}>
             {leftSections.map(section => (
-              <Section key={section.id} style={pdfRender ? styles.section : { marginBottom: 16 }}>
+              <Section key={section.id} style={styles.section}>
                 {section.title && <H2 style={styles.sectionTitle}>{section.title}</H2>}
                 {section.items.map(item => (
                   <Div key={item.id} style={{ marginBottom: 10 }}>
-                    {item.title && <H3 style={styles.jobTitle}>{item.title}</H3>}
-                    {item.organization && <P style={styles.org}>{item.organization}</P>}
-                    {item.date && <P style={styles.date}>{item.date}</P>}
-                    {item.description && <P style={styles.text}>{item.description}</P>}
+                    {/* Use new semantic styles */} 
+                    {item.label1 && <H3 style={styles.itemLabel1}>{item.label1}</H3>}
+                    {item.label2 && <P style={styles.itemLabel2}>{item.label2}</P>}
+                    {item.label3 && <P style={styles.itemLabel3}>{item.label3}</P>}
+                    {item.notes && <P style={styles.notesText}>{item.notes}</P>}
                     {item.bullets && item.bullets.length > 0 && (
                       <Ul>
-                        {item.bullets.map((bullet, idx) => bullet ? <Li key={idx}><Span style={styles.bulletMarker}>•</Span>{bullet}</Li> : null)}
+                        {item.bullets.map((bullet, idx) => bullet ? <Li key={idx} style={styles.bullet}><Span style={styles.bulletMarker}>•</Span>{bullet}</Li> : null)}
                       </Ul>
                     )}
                   </Div>
@@ -166,19 +214,20 @@ const ResumeLayoutDefault = ({
               </Section>
             ))}
           </Div>
-          <Div style={pdfRender ? styles.rightColumn : { width: '35%' }}>
+          <Div style={styles.rightColumn}>
             {rightSections.map(section => (
-              <Section key={section.id} style={pdfRender ? styles.section : { marginBottom: 16 }}>
+              <Section key={section.id} style={styles.section}>
                 {section.title && <H2 style={styles.sectionTitle}>{section.title}</H2>}
                 {section.items.map(item => (
                   <Div key={item.id} style={{ marginBottom: 10 }}>
-                    {item.title && <H3 style={styles.jobTitle}>{item.title}</H3>}
-                    {item.organization && <P style={styles.org}>{item.organization}</P>}
-                    {item.date && <P style={styles.date}>{item.date}</P>}
-                    {item.description && <P style={styles.text}>{item.description}</P>}
+                    {/* Use new semantic styles */} 
+                    {item.label1 && <H3 style={styles.itemLabel1}>{item.label1}</H3>}
+                    {item.label2 && <P style={styles.itemLabel2}>{item.label2}</P>}
+                    {item.label3 && <P style={styles.itemLabel3}>{item.label3}</P>}
+                    {item.notes && <P style={styles.notesText}>{item.notes}</P>}
                     {item.bullets && item.bullets.length > 0 && (
                       <Ul>
-                        {item.bullets.map((bullet, idx) => bullet ? <Li key={idx}><Span style={styles.bulletMarker}>•</Span>{bullet}</Li> : null)}
+                        {item.bullets.map((bullet, idx) => bullet ? <Li key={idx} style={styles.bullet}><Span style={styles.bulletMarker}>•</Span>{bullet}</Li> : null)}
                       </Ul>
                     )}
                   </Div>
@@ -202,7 +251,5 @@ const ResumeLayoutDefault = ({
   }
 
   // HTML preview (for web, not PDF)
-  return <div className="p-6">{content}</div>
+  return <div style={styles.page}>{content}</div>
 }
-
-export default ResumeLayoutDefault

@@ -7,24 +7,59 @@ import {
     MenubarSeparator,
     MenubarShortcut,
     MenubarTrigger,
+    MenubarSub,
+    MenubarSubTrigger,
+    MenubarSubContent,
 } from "@/components/ui/menubar"
-import { exportResumePdf, newResumeAction, saveResume } from '@/lib/actions'
+import { exportResumePdf, exportResumeJson, importResumeFromJson, newResumeAction, saveResume, resetResume, undo, redo } from '@/lib/actions'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
-import { useResumeHistoryStore } from '@/lib/stores/resumeStore'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Separator } from '../ui/separator'
+import { Input } from '@/components/ui/input'
 
 const AppMenu = () => {
     const [dialogOpen, setDialogOpen] = useState(false)
-    const resetResume = useResumeHistoryStore(state => state.resetResume)
-    const undo = useResumeHistoryStore(state => state.undo)
-    const redo = useResumeHistoryStore(state => state.redo)
+    const [importError, setImportError] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const appVersion = '0.1.0'
+
+    // Add debug logs and reset input after reading
+    const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        console.log('File selected:', file.name); // Debug
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const json = JSON.parse(event.target?.result as string);
+                const ok = importResumeFromJson(json);
+                if (!ok) setImportError('Invalid JSON file.');
+                else setImportError(null);
+                console.log('JSON import result:', ok, json); // Debug
+            } catch (err: any) {
+                setImportError('Invalid JSON file.');
+                console.error('JSON parse error:', err); // Debug
+            }
+            // Reset input so user can select the same file again
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        };
+        reader.readAsText(file);
+    }
 
     return (
         <nav className='bg-muted border-b border-border'>
+            {/* Always render the file input at the root so it never unmounts */}
+            <Input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json"
+                style={{ display: 'none' }}
+                onChange={handleImport}
+                tabIndex={-1}
+                aria-hidden="true"
+            />
             <div className="flex items-center ">
                 <Logo className='border-r-2 border-border rounded-none mx-2' />
                 <Menubar className="bg-muted border-none shadow-none px-0">
@@ -75,21 +110,25 @@ const AppMenu = () => {
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
-                            <MenubarItem>
-                                Open... <MenubarShortcut>⌘O</MenubarShortcut>
+                            <MenubarItem onClick={() => fileInputRef.current?.click()}>
+                                Import (JSON)
                             </MenubarItem>
+                            {importError && <div className="text-red-500 px-3 py-1 text-xs">{importError}</div>}
                             <MenubarSeparator />
-                            <MenubarItem>
+                            <MenubarItem onClick={saveResume}>
                                 Save <MenubarShortcut>⌘S</MenubarShortcut>
                             </MenubarItem>
-                        </MenubarContent>
-                    </MenubarMenu>
-                    <MenubarMenu>
-                        <MenubarTrigger className=" ">Export</MenubarTrigger>
-                        <MenubarContent>
-                            <MenubarItem onClick={exportResumePdf}>
-                                Export PDF
-                            </MenubarItem>
+                            <MenubarSub>
+                                <MenubarSubTrigger>Export</MenubarSubTrigger>
+                                <MenubarSubContent>
+                                    <MenubarItem onClick={exportResumePdf}>
+                                        Export PDF
+                                    </MenubarItem>
+                                    <MenubarItem onClick={exportResumeJson}>
+                                        Export JSON
+                                    </MenubarItem>
+                                </MenubarSubContent>
+                            </MenubarSub>
                         </MenubarContent>
                     </MenubarMenu>
                     <MenubarMenu>
@@ -100,16 +139,6 @@ const AppMenu = () => {
                             </MenubarItem>
                             <MenubarItem onClick={redo}>
                                 Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
-                            </MenubarItem>
-                            <MenubarSeparator />
-                            <MenubarItem>
-                                Cut <MenubarShortcut>⌘X</MenubarShortcut>
-                            </MenubarItem>
-                            <MenubarItem>
-                                Copy <MenubarShortcut>⌘C</MenubarShortcut>
-                            </MenubarItem>
-                            <MenubarItem>
-                                Paste <MenubarShortcut>⌘V</MenubarShortcut>
                             </MenubarItem>
                         </MenubarContent>
                     </MenubarMenu>

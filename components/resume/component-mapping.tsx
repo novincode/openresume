@@ -12,7 +12,10 @@ type CommonProps = {
 function injectPdfRender(children: React.ReactNode, pdfRender: boolean): React.ReactNode {
     return React.Children.map(children, child => {
         if (!React.isValidElement(child)) return child;
-        // Clone element with pdfRender prop
+        // Don't inject pdfRender into React.Fragment
+        if (child.type === React.Fragment) {
+            return <React.Fragment key={child.key}>{injectPdfRender((child.props as { children?: React.ReactNode }).children, pdfRender)}</React.Fragment>;
+        }
         const props: any = { ...(child.props || {}), pdfRender };
         // Also inject into children if they exist
         if (child.props && (child.props as any).children) {

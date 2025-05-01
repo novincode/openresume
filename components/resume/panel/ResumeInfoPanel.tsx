@@ -1,64 +1,48 @@
 'use client'
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useResumeHistoryStore } from '@/lib/stores/resumeStore'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import SectionsPanel from './SectionsPanel'
+
+type FormFields = 'name' | 'description' | 'email' | 'phone' | 'location'
+
+const fieldMeta: { key: FormFields; label: string; type?: string; component?: 'input' | 'textarea'; placeholder: string; rows?: number }[] = [
+  { key: 'name', label: 'Name', placeholder: 'Enter your name' },
+  { key: 'description', label: 'Professional Summary', component: 'textarea', placeholder: 'A brief description of your professional background', rows: 3 },
+  { key: 'email', label: 'Email', type: 'email', placeholder: 'your.email@example.com' },
+  { key: 'phone', label: 'Phone', placeholder: 'Phone number' },
+  { key: 'location', label: 'Location', placeholder: 'City, Country' },
+]
+
+const getInitialFormData = (resume: any) => ({
+  name: resume.name || '',
+  description: resume.description || '',
+  email: resume.contact?.email || '',
+  phone: resume.contact?.phone || '',
+  location: resume.contact?.location || '',
+})
 
 const ResumeInfoPanel = () => {
   const resume = useResumeHistoryStore(state => state.present.resume)
   const updateResume = useResumeHistoryStore(state => state.updateResume)
-
-  // Track if the update is from user input or from store
   const isLocalUpdate = useRef(false)
+  const [formData, setFormData] = useState(() => getInitialFormData(resume))
 
-  const [formData, setFormData] = useState({
-    name: resume.name || '',
-    description: resume.description || '',
-    email: resume.contact?.email || '',
-    phone: resume.contact?.phone || '',
-    location: resume.contact?.location || '',
-  })
-
-  // Only update local state if the store values actually changed (not just on every render)
+  // Sync local state with store
   useEffect(() => {
-    if (
-      resume.name !== formData.name ||
-      resume.description !== formData.description ||
-      (resume.contact?.email || '') !== formData.email ||
-      (resume.contact?.phone || '') !== formData.phone ||
-      (resume.contact?.location || '') !== formData.location
-    ) {
-      // Only update if not a local update (i.e., from store)
-      if (!isLocalUpdate.current) {
-        setFormData({
-          name: resume.name || '',
-          description: resume.description || '',
-          email: resume.contact?.email || '',
-          phone: resume.contact?.phone || '',
-          location: resume.contact?.location || '',
-        })
-      }
+    const storeData = getInitialFormData(resume)
+    if (JSON.stringify(storeData) !== JSON.stringify(formData) && !isLocalUpdate.current) {
+      setFormData(storeData)
     }
     isLocalUpdate.current = false
-  }, [
-    resume.name,
-    resume.description,
-    resume.contact?.email,
-    resume.contact?.phone,
-    resume.contact?.location
-  ])
+  }, [resume])
 
   // Update a single form field and the store immediately
-  const updateField = (field: string, value: string) => {
+  const updateField = useCallback((field: FormFields, value: string) => {
     isLocalUpdate.current = true
-    const newFormData = {
-      ...formData,
-      [field]: value
-    }
+    const newFormData = { ...formData, [field]: value }
     setFormData(newFormData)
     updateResume({
       name: field === 'name' ? value : newFormData.name,
@@ -69,67 +53,33 @@ const ResumeInfoPanel = () => {
         location: field === 'location' ? value : newFormData.location,
       }
     })
-  }
+  }, [formData, updateResume])
 
   return (
-    <Tabs defaultValue="basic" className="w-full">
-      <TabsList className="w-full grid grid-cols-2 mb-4">
-        <TabsTrigger value="basic">Basic Info</TabsTrigger>
-        <TabsTrigger value="sections">Sections</TabsTrigger>
-      </TabsList>
-      <TabsContent value="basic" className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => updateField('name', e.target.value)}
-            placeholder="Enter your name"
-          />
+    <div className="space-y-4">
+      {fieldMeta.map(({ key, label, type, component, placeholder, rows }) => (
+        <div className="space-y-2" key={key}>
+          <Label htmlFor={key}>{label}</Label>
+          {component === 'textarea' ? (
+            <Textarea
+              id={key}
+              value={formData[key]}
+              onChange={e => updateField(key, e.target.value)}
+              placeholder={placeholder}
+              rows={rows}
+            />
+          ) : (
+            <Input
+              id={key}
+              type={type}
+              value={formData[key]}
+              onChange={e => updateField(key, e.target.value)}
+              placeholder={placeholder}
+            />
+          )}
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="description">Professional Summary</Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => updateField('description', e.target.value)}
-            placeholder="A brief description of your professional background"
-            rows={3}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => updateField('email', e.target.value)}
-            placeholder="your.email@example.com"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone</Label>
-          <Input
-            id="phone"
-            value={formData.phone}
-            onChange={(e) => updateField('phone', e.target.value)}
-            placeholder="Phone number"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            value={formData.location}
-            onChange={(e) => updateField('location', e.target.value)}
-            placeholder="City, Country"
-          />
-        </div>
-      </TabsContent>
-      <TabsContent value="sections">
-        <SectionsPanel />
-      </TabsContent>
-    </Tabs>
+      ))}
+    </div>
   )
 }
 

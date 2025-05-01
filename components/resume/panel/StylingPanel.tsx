@@ -1,20 +1,33 @@
 'use client'
-import { useResumeHistoryStore, defaultColors } from '@/lib/stores/resumeStore'
+import { useResumeHistoryStore, defaultColors, defaultFonts, ResumeFonts } from '@/lib/stores/resumeStore'
 import { HexColorPicker } from 'react-colorful'
 import { useState } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
+import { Slider } from '@/components/ui/slider'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { SidebarSection } from '../ResumeSidebar'
 
-const COLOR_LABELS: Record<string, string> = {
-    background: 'Background',
-    title: 'Title',
-    subtitle: 'Subtitle',
-    text: 'Text',
-    border: 'Border',
-    accent: 'Accent',
-}
+const COLOR_CONTROLS = [
+    { key: 'background', label: 'Background' },
+    { key: 'title', label: 'Title' },
+    { key: 'subtitle', label: 'Subtitle' },
+    { key: 'text', label: 'Text' },
+    { key: 'border', label: 'Border' },
+    { key: 'accent', label: 'Accent' },
+]
 
-function ColorControl({ colorKey, colorValue, onChange }: { colorKey: string, colorValue: string, onChange: (val: string) => void }) {
+const FONT_CONTROLS: { key: keyof ResumeFonts; label: string; min: number; max: number }[] = [
+    { key: 'headingSize', label: 'Name', min: 16, max: 64 },
+    { key: 'subheadingSize', label: 'Section Title/Desc', min: 12, max: 48 },
+    { key: 'accentSize', label: 'Primary Label', min: 10, max: 36 }, // e.g., Job Title
+    { key: 'bodySize', label: 'Body Text', min: 8, max: 28 }, // e.g., Bullets, Notes
+    { key: 'contactSize', label: 'Contact Info', min: 8, max: 24 }, // New
+    { key: 'labelSize', label: 'Secondary Label', min: 8, max: 24 }, // New, e.g., Dates
+]
+
+function ColorControl({ colorKey, colorValue, onChange, label }: { colorKey: string, colorValue: string, onChange: (val: string) => void, label: string }) {
     const [open, setOpen] = useState(false)
     return (
         <div className="flex items-center gap-3 justify-between mb-4">
@@ -33,10 +46,10 @@ function ColorControl({ colorKey, colorValue, onChange }: { colorKey: string, co
                     </PopoverContent>
                 </Popover>
                 <span className="w-24 text-xs text-muted-foreground tracking-widest uppercase font-medium">
-                    {COLOR_LABELS[colorKey] || colorKey}
+                    {label}
                 </span>
             </div>
-            <input
+            <Input
                 className="border rounded px-2 py-1 text-xs w-28 bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-100 tracking-widest font-mono focus:ring-2 focus:ring-primary/40 focus:border-primary/60 transition-colors"
                 value={colorValue}
                 onChange={e => onChange(e.target.value)}
@@ -49,32 +62,76 @@ function ColorControl({ colorKey, colorValue, onChange }: { colorKey: string, co
     )
 }
 
+function FontControl({ label, value, min, max, onChange }: { label: string, value: number, min: number, max: number, onChange: (v: number) => void }) {
+    return (
+        <div className="flex items-center justify-between gap-4 mb-2">
+            <Label className="w-40 text-xs text-muted-foreground font-medium">{label}</Label>
+            <div className='flex items-center gap-2'>
+                <Input
+                    type="number"
+                    min={min}
+                    max={max}
+                    value={value}
+                    onChange={e => onChange(Number(e.target.value))}
+                    className="w-16 text-xs font-mono"
+                />
+                <span className="text-xs text-muted-foreground">px</span>
+            </div>
+        </div>
+    )
+}
+
 const StylingPanel = () => {
     const colors = { ...defaultColors, ...useResumeHistoryStore(s => s.present.colors) }
     const updateColors = useResumeHistoryStore(s => s.updateColors)
+    const presentFonts = useResumeHistoryStore(s => s.present.fonts)
+    const fonts = presentFonts || defaultFonts // fallback to defaultFonts if undefined
+    const updateFonts = useResumeHistoryStore(s => s.updateFonts)
 
     return (
-        <div>
-            <h4 className="font-semibold mb-2">Colors</h4>
-            <div className="space-y-2 relative">
-                {Object.entries(colors).map(([key, value]) => (
-                    <ColorControl
-                        key={key}
-                        colorKey={key}
-                        colorValue={value}
-                        onChange={val => updateColors({ [key]: val })}
-                    />
-                ))}
-            </div>
-            <Button
-                className="w-full font-semibold"
-                variant="outline"
-                onClick={() => updateColors(defaultColors)}
-                type="button"
+        <>
+            <SidebarSection
+                title="Colors"
+                action={
+                    <Button size="xs" variant="outline" className="text-xs px-2 py-1" onClick={() => updateColors(defaultColors)}>
+                        Reset Colors
+                    </Button>
+                }
             >
-                Reset to Default Colors
-            </Button>
-        </div>
+                <div className="space-y-2 relative mb-6">
+                    {COLOR_CONTROLS.map(ctrl => (
+                        <ColorControl
+                            key={ctrl.key}
+                            colorKey={ctrl.key}
+                            colorValue={colors[ctrl.key]}
+                            label={ctrl.label}
+                            onChange={val => updateColors({ [ctrl.key]: val })}
+                        />
+                    ))}
+                </div>
+            </SidebarSection>
+            <SidebarSection
+                title="Font Sizes"
+                action={
+                    <Button size="xs" variant="outline" className="text-xs px-2 py-1" onClick={() => updateFonts(defaultFonts)}>
+                        Reset Font Sizes
+                    </Button>
+                }
+            >
+                <div className="space-y-2 mb-4">
+                    {FONT_CONTROLS.map(ctrl => (
+                        <FontControl
+                            key={ctrl.key}
+                            label={ctrl.label}
+                            value={fonts[ctrl.key]}
+                            min={ctrl.min}
+                            max={ctrl.max}
+                            onChange={v => updateFonts({ [ctrl.key]: v })}
+                        />
+                    ))}
+                </div>
+            </SidebarSection>
+        </>
     )
 }
 

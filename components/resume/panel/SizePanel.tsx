@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import { Lock, Unlock } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
+import { useResumeHistoryStore } from '@/lib/stores/resumeStore'
 
 const PAGE_PRESETS = [
     { label: 'A4', value: 'a4', width: 210, height: 297 },
@@ -29,15 +30,12 @@ function findPreset(width: number, height: number) {
     return 'custom'
 }
 
-type SizePanelProps = {
-    page: { width: number; height: number }
-    updatePage: (page: Partial<{ width: number; height: number }>) => void
-}
-
 const MIN_SIZE = 50
 const MAX_SIZE = 500
 
-const SizePanel = ({ page, updatePage }: SizePanelProps) => {
+const SizePanel = () => {
+    const page = useResumeHistoryStore(s => s.present.page)
+    const updatePage = useResumeHistoryStore(s => s.updatePage)
     const [locked, setLocked] = useState(true)
     const [width, setWidth] = useState(page.width.toString())
     const [height, setHeight] = useState(page.height.toString())
